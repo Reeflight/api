@@ -1,7 +1,10 @@
+sudo: required
+dist: trusty
 language: node_js
 node_js:
 - v7
 - v6
+before_install: sudo apt-get install libbluetooth-dev
 before_deploy: cd dist && zip api.zip index.js && cd ../
 deploy:
   provider: releases
