@@ -1,0 +1,12 @@
+language: node_js
+node_js:
+- v7
+- v6
+before_deploy: cd dist && zip api.zip index.js && cd ../
+deploy:
+  provider: releases
+  api_key:
+    secure: c1FFK62IefZfqFZPRpBQlBhD/+ScsEssTSrIV7iOazk12tdv6MdY7PJcZoRGOCvvFDppruQMH2vq+4xCqJaElqarWyoWPc0sC+Q86CsjFZi9ZXGhZSq2WsCdhuYUe7vkqHtgytD39gkZpJGpaOs1N24vgzHmsWv/tqSgX8fqmhmu0Scyv7pUghpmSZvLkx0wM3xgbWtxn+F6YyMClK6SaFD2YCm0jxh5P/8ONKkfZqpuRS7yuippl3hHhi1qS2ZG6H4OCMjBS+nsNJIgg/qD7r6eXEbkLMV7wKSRYSjby3HEg4EOqgXoRllztFhkEgN6oRYzn60IsqbamX+f84SQq1EZ4TP4w74ymQ0xYSOYvKDCicCAL9Jimh8RIbKt5H9n7XXh1TLeMqkor8pyP2fnb1Exjy/mbwPqqkpDvYYjauQeEyTgfHP85/CUkMt4V5tzCl6XZ0aYsxHBVO7BZ8oUwIROoz3w3ZyahX+EvAaprI1TEEyFZfgOucJa2f75VGZDeiYbgBiuiPfGOSV2NQZd/N0FfAekq2fdztK94xQhyd8ZztvlQkPHE2C8ozDhH2bPAo5dUwZixy3lOizMgCY1IkV7f3zEmXcP3iTjzvcfDKbXioi6BRTQsVJ9mG0gYNuZzuvzknOYAKX8obnI9at2LtU85YbO5tZAa4aTMiRMj+o=
+  file: dist/api.zip
+  on:
+    repo: Reeflight/api

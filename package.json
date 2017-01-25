@@ -4,10 +4,12 @@
   "description": "The Official Reeflight API",
   "main": "dist/api.js",
   "scripts": {
+    "prepublish": "npm run build",
     "build": "rollup --config rollup.config.js",
     "start": "node ./dist/index.js",
     "watch": "tend",
     "test": "test",
+    "install": "sh make-root-ca-and-certificate.sh",
     "heroku-prebuild": "npm install --only=dev",
     "heroku-postbuild": "rollup --config rollup.config.js"
   },
