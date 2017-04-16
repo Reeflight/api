@@ -11,70 +11,10 @@ import ap from 'rpi-ap-setup';
 import fs from './fs.js';
 import _states from './states.js';
 import reboot from './spawns/reboot.js';
-
 class ReeflightApi {
   constructor() {
+    
     async function gen(self) {
-      // Read states
-      let states = await _states.read();
-      
-      // Do a ping
-      const pingResolve = await ping();
-      // Ping is true
-      // if (pingResolve === 0) {
-      //   // Write to Rapi JSON
-      //   states.comfirmedWifi = true;
-      //   _states.write(states);
-      // }
-      
-      // Check if init AP required
-      if (states.isAP && pingResolve === 1) {
-        const apState = await ap.init();
-      }
-      
-      // check to set isAP to false
-      if (states.isAP && pingResolve === 0) {
-        states.isAP = false;
-        _states.write(states);
-        
-        // Restore RPI AP to RPI WIFI
-        ap.restore();
-        
-      }
-      // Check if still on ap mode
-      if (states.isAP) {
-        
-        
-        // get ssids
-        const json = readFileSync(path.join(__dirname, 'ssids.json'));
-        
-        // serve files in browser
-        self.api.use('/api', express.static(__dirname));
-        
-        // handle api setup request
-        self.api.post('/api/setup', (req, res) => {
-          async function gen() {
-            // Write ap and password to wpa_supplicant.conf
-            configWifi(req.query.ap, req.query.password);
-            
-            // Set isAP to false
-            states.isAP = false;
-            _states.write(states);
-            
-            // Send Acknowledge to GUI
-            res.send('ok');
-            // Reboot
-            reboot();
-            
-          }
-          // run async generator
-          gen();
-        });
-      }
-      
-     await wifi();
-     
-      
       self.api = express();
       self.server = http.createServer(self.api);
       // setup body parser
@@ -83,14 +23,83 @@ class ReeflightApi {
       // setup static routes
       self.api.use('/', express.static(__dirname));
       
+      // Read states
+      let states = await _states.read();
+      
+      // Do a ping
+      const pingResolve = await ping();
+      // check for internet connection
+      // TODO: check if on local network instead
+      if (states.isAP) {
+        if (pingResolve === 0) {
+          // Write to Rapi JSON
+          states.comfirmedWifi = true;
+          states.isAP = false;
+          states.needsConfirm = false;
+          _states.write(states);
+        } else if (!states.needsConfirm) {
+          console.log('ready to init ap');
+          const apState = await ap.init();
+          states.needsConfirm = true;
+          _states.write(states);
+          reboot();
+        }
+        if (!states.confirmedWifi && states.needsConfirm) {
+          self.retry(states);
+          // routes.api.ap(self)
+          
+          
+          // wait till the ssids are writen
+          await wifi();
+          // get ssids
+          const json = readFileSync(path.join(__dirname, 'ssids.json'));
+          
+          // serve files in browser
+          self.api.use('/api', express.static(__dirname));
+          
+          self.api.get('/', (req, res) => {
+            clearTimeout(self.retry)
+          });
+          
+          // handle api setup request
+          self.api.post('/api/setup', (req, res) => {
+            async function gen() {
+              // Write ap and password to wpa_supplicant.conf
+              configWifi(req.query.ap, req.query.password);
+              // Send Acknowledge to GUI
+              res.send('ok');
+              // Reboot
+              
+              ap.restore();
+              
+            }
+            // run async generator
+            gen();
+          });
+        }
+      }
+      
+      if (!states.confirmedWifi) {
+        
+      }
       // setup server
-      self.api.listen(5000, () => {
+      self.api.listen(80, () => {
         console.log('server started');
       });
-      // TODO: create module for ssids(promise)
-      
     }
     gen(this);
+  }
+  
+        
+  retry(states) {
+    return setTimeout(() => {
+      states.comfirmedWifi = false;
+      states.isAP = true;
+      states.needsConfirm = false;
+      _states.write(states);
+      ap.restore();
+    }, 60000);
+    // return retry;
   }
 }
 
