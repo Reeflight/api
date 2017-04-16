@@ -1,78 +1,97 @@
 'use strict';
-import http2 from 'http2';
+import http from 'http';
 import express from 'express';
-import Wifi from './wifi';
 import {readFileSync} from 'fs';
-import Interfaces from './interfaces';
+import path from 'path';
+import wifi from './spawns/wifi.js';
+import bodyParser from 'body-parser';
+import ping from './spawns/ping.js';
+import configWifi from './spawns/config-wifi.js';
+import ap from 'rpi-ap-setup';
+import fs from './fs.js';
+import _states from './states.js';
+import reboot from './spawns/reboot.js';
 
-export default class ReeflightApi {
+class ReeflightApi {
   constructor() {
-    const options = {
-      key: readFileSync('certs/ca/my-root-ca.key.pem'),
-      cert: readFileSync('certs/ca/my-root-ca.crt.pem')
+    async function gen(self) {
+      // Read states
+      let states = await _states.read();
+      
+      // Do a ping
+      const pingResolve = await ping();
+      // Ping is true
+      // if (pingResolve === 0) {
+      //   // Write to Rapi JSON
+      //   states.comfirmedWifi = true;
+      //   _states.write(states);
+      // }
+      
+      // Check if init AP required
+      if (states.isAP && pingResolve === 1) {
+        const apState = await ap.init();
+      }
+      
+      // check to set isAP to false
+      if (states.isAP && pingResolve === 0) {
+        states.isAP = false;
+        _states.write(states);
+        
+        // Restore RPI AP to RPI WIFI
+        ap.restore();
+        
+      }
+      // Check if still on ap mode
+      if (states.isAP) {
+        
+        
+        // get ssids
+        const json = readFileSync(path.join(__dirname, 'ssids.json'));
+        
+        // serve files in browser
+        self.api.use('/api', express.static(__dirname));
+        
+        // handle api setup request
+        self.api.post('/api/setup', (req, res) => {
+          async function gen() {
+            // Write ap and password to wpa_supplicant.conf
+            configWifi(req.query.ap, req.query.password);
+            
+            // Set isAP to false
+            states.isAP = false;
+            _states.write(states);
+            
+            // Send Acknowledge to GUI
+            res.send('ok');
+            // Reboot
+            reboot();
+            
+          }
+          // run async generator
+          gen();
+        });
+      }
+      
+     await wifi();
+     
+      
+      self.api = express();
+      self.server = http.createServer(self.api);
+      // setup body parser
+      self.api.use(bodyParser.urlencoded({ extended: true }));
+      self.api.use(bodyParser.json());
+      // setup static routes
+      self.api.use('/', express.static(__dirname));
+      
+      // setup server
+      self.api.listen(5000, () => {
+        console.log('server started');
+      });
+      // TODO: create module for ssids(promise)
+      
     }
-    this.api = express();
-    this.server = http2.createServer(options, this.api);
-    this.interfaces = new Interfaces();
-
-    this.interfaces.on('finished', interfaces => {
-      if (interfaces.hasWlan) {
-        this.wifi = new Wifi();
-
-        this.wifi.on('appear', connection => {
-          console.log(connection);
-        })
-        this.wifi.scan();
-      }
-      if (interfaces.hasLan) {
-        console.log('Lan available');
-      }
-      if (interfaces.hasBluetooth) {
-        console.log('Bluetooth available');
-      }
-    });
-
-    this.interfaces.getInterfaces();
-    this.setupAPIRoutes();
-    this.api.listen(5000);
-  }
-
-  setupAPIRoutes() {
-    this.api.get('/', (req, res) => {
-      // TODO: Add documentation how to use for developers
-      res.send(this.beautyfy({
-        bluetooth: this.interfaces.hasBluetooth,
-        Wlan: this.interfaces.hasWlan,
-        lan: this.interfaces.hasLan,
-        interfaces: this.interfaces.interfaces
-      }));
-    });
-
-    this.api.get('/devices', (req, res) => {
-      if (req.auth === undefined) {
-        var message = '';
-        let num = Math.random() * (15 - 1) + 1;
-        if (num > 5) {
-          message = `Sorry, I don't talk to strangers...`;
-        } else if (num > 10) {
-          message = 'Please identify yourself...';
-        } else if (num > 15 || num === 15) {
-          mesage = `Hmm, I don't seem to know you...`;
-        }
-        this.log('Not authorized::' + message);
-        return res.send(message);
-      } else {
-        res.send(this.beautyfy(this.interfaces.interfaces));
-        // this.interfaces.getInterfaces();
-      }
-    });
-  }
-
-  beautyfy(obj) {
-    return JSON.stringify(obj, null, '\t')
-  }
-
-  log(text=String) {
-    console.log(text);
+    gen(this);
   }
 }
+
+export default new ReeflightApi();

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Reef Setup</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <link rel='icon' href='ico.png'>
+    
+    <style>
+      body {
+        margin: 0;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+      }
+      header {
+        width: 100%;
+        height: 128px;
+        background-color: #1A8186;
+        color: #FFF;
+        font-size: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      main {
+        padding: 32px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      .container {
+        display: flex;
+        flex-direction: column;
+        max-width: 320px;
+      }
+      label {
+        padding: 24px 0;
+        box-sizing: border-box;
+      }
+      select, input[type="password"] {
+        border:none;
+        border-bottom: 1px solid rgba(0,0,0,0.32);
+        background:none;
+      }
+      button {
+        background: none;
+        border: none;
+        outline: none;
+        padding-top:36px;
+      }
+      svg {
+        background: #1A8186;
+        fill: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        padding: 8px;
+        box-sizing: border-box;
+        cursor: pointer;
+        box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+      }
+      .send.disabled {
+        pointer-events: none;
+      }
+      .send.disabled svg {
+        background-color: rgb(234,234,234);
+        fill: #a8a8a8;
+      }
+        
+    </style>
+  </head>
+  
+  <body>
+    <rl-api>
+      <header>
+        Reeflight Wifi Setup
+      </header>
+      <main>
+        <div class="container">
+            <label> Wifi</label>
+            <select name="ap"></select>
+            <label> Wachtwoord</label>
+            <input type="password" name="wifi-pass">
+        </div>
+      
+        <button class="send disabled">
+          <svg fill="#000000" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+            <path d="M0 0h24v24H0z" fill="none"/>
+          </svg>
+        </button>
+      </main>
+    </rl-api>
+    
+    <script src="node_modules/backed/dist/backed.js"></script>
+    <script src="rl-api.js"></script>
+  	<script src="/reload/reload.js"></script>
+</body>
+  
+</html>
