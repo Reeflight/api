@@ -2037,9 +2037,9 @@ rollup@^0.36.3:
   dependencies:
     source-map-support "^0.4.0"
 
-rpi-ap-setup@^0.2.3:
-  version "0.2.3"
-  resolved "https://registry.yarnpkg.com/rpi-ap-setup/-/rpi-ap-setup-0.2.3.tgz#346821c9b88f6cb14d29b435c95e7c325fc1c7cb"
+rpi-ap-setup@^0.2.5:
+  version "0.2.5"
+  resolved "https://registry.yarnpkg.com/rpi-ap-setup/-/rpi-ap-setup-0.2.5.tgz#8bd555a8139230ba6625e89369f3bc1208c0612c"
   dependencies:
     chalk "^1.1.3"
     inquirer "^3.0.6"

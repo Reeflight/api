@@ -55,7 +55,7 @@
     "firebase": "^3.5.2",
     "node-bluetooth": "^1.1.0",
     "node-glob": "^1.2.0",
-    "rpi-ap-setup": "^0.2.3",
+    "rpi-ap-setup": "^0.2.5",
     "vinyl-read": "^1.0.0",
     "wireless": "^0.3.2"
   },

@@ -28,6 +28,7 @@ class ReeflightApi {
       
       // Do a ping
       const pingResolve = await ping();
+      
       // check for internet connection
       // TODO: check if on local network instead
       if (states.isAP) {
@@ -46,7 +47,7 @@ class ReeflightApi {
         }
         if (!states.confirmedWifi && states.needsConfirm) {
           self.retry(states);
-          // routes.api.ap(self)
+          
           
           
           // wait till the ssids are writen
@@ -65,7 +66,7 @@ class ReeflightApi {
           self.api.post('/api/setup', (req, res) => {
             async function gen() {
               // Write ap and password to wpa_supplicant.conf
-              configWifi(req.query.ap, req.query.password);
+              await configWifi(req.query.ap, req.query.password);
               // Send Acknowledge to GUI
               res.send('ok');
               // Reboot
